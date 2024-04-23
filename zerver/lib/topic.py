@@ -75,7 +75,13 @@ MESSAGE__TOPIC = "message__subject"
 def topic_match_sa(topic_name: str) -> ColumnElement[Boolean]:
     # _sa is short for SQLAlchemy, which we use mostly for
     # queries that search messages
-    topic_cond = func.upper(column("subject", Text)) == func.upper(literal(topic_name))
+
+    # treats differences in capitalization and " " / "-" indiscriminatively
+    def preprocess(text: str) -> str:
+        return text.upper().replace("-", " ")
+
+    processed_name = preprocess(topic_name)
+    topic_cond = func.upper(func.replace(column("subject", Text), "-", " ")) == literal(processed_name)
     return topic_cond
 
 
